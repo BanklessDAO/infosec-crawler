@@ -19,7 +19,8 @@ type Article struct {
 func main() {
 	// Instantiate default collector
 	c := colly.NewCollector(
-		colly.AllowedDomains("rekt.news"),
+		// Visit only domains: rekt.news, hackerspaces.org
+		colly.AllowedDomains("rekt.news", "hackerspaces.org"),
 	)
 
 	articles := make([]Article, 0)
@@ -58,8 +59,9 @@ func main() {
 		fmt.Println("Got a response from", r.Request.URL)
 	})
 
-	c.OnError(func(r *colly.Response, e error) {
-		fmt.Println("Got this error:", e)
+	// Set error handler
+	c.OnError(func(r *colly.Response, err error) {
+		fmt.Println("Got this error:", err)
 	})
 
 	c.OnScraped(func(r *colly.Response) {
@@ -69,11 +71,12 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Println("Writing data to file")
-		if err := os.WriteFile("articles.json", js, 0664); err == nil {
+		if err := os.WriteFile("../articles.json", js, 0664); err == nil {
 			fmt.Println("Data written to file successfully")
 		}
 
 	})
 
+	// Start scraping on https://rekt.news
 	c.Visit("https://rekt.news/")
 }
